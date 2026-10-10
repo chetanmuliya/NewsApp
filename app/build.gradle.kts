@@ -1,9 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+
+val localProperties = Properties().apply {
+    load(rootProject.file("local.properties").inputStream())
+}
+
 
 android {
     namespace = "com.example.newsapp"
@@ -22,7 +29,12 @@ android {
         buildConfigField(
             "String",
             "API_KEY",
-            "\"${project.properties["API_KEY"] ?: ""}\""
+            "\"${localProperties.getProperty("API_KEY","") ?: ""}\""
+        )
+        buildConfigField(
+            "String",
+            "BASE_URL",
+            "\"https://newsdata.io/api/1/\""
         )
     }
 
@@ -39,6 +51,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
