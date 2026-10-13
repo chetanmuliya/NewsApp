@@ -4,7 +4,7 @@ data class ResultDto(
     val ai_org: String,
     val ai_region: String,
     val ai_summary: String,
-    val ai_tag: String,
+    val ai_tagggg: String,
     val article_id: String,
     val category: List<String>,
     val content: String,
@@ -21,7 +21,7 @@ data class ResultDto(
     val pubDate: String,
     val pubDateTZ: String,
     val sentiment: String,
-    val sentiment_stats: String,
+    val sentiment_statsssss: String,//sss
     val source_icon: String,
     val source_id: String,
     val source_name: String,

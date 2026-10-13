@@ -11,11 +11,7 @@ class LatestNewsRepositoryImpl @Inject constructor(
 ): LatestNewsRepository {
 
     override suspend fun getLatestNews(): LatestNewsResponse {
-       return try {
-            api.getLatestNews().toDomain()
-        }catch (e: Exception){
-            throw e
-        }
+        return api.getLatestNews().toDomain()
     }
 
 }

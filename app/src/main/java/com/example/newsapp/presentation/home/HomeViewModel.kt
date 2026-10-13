@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.newsapp.domain.helper.LatestNewsState
 import com.example.newsapp.domain.usecases.GetLatestNewsUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,8 +27,15 @@ class HomeViewModel @Inject constructor(
 
     fun getLatestNews(){
         viewModelScope.launch {
-            val result = getLatestNewsUseCases()
-            _uiState.value = LatestNewsState.Success(result)
+            _uiState.value = LatestNewsState.Loading
+            try {
+                val result = getLatestNewsUseCases()
+                _uiState.value = LatestNewsState.Success(result)
+            }catch (e: CancellationException){
+                throw e
+            }catch (e: Exception){
+                _uiState.value = LatestNewsState.Error(e.message?:"Something Went Wrong!!")
+            }
         }
     }
 }
