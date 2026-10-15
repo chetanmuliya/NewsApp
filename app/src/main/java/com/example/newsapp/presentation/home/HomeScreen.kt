@@ -46,7 +46,11 @@ fun HomeScreen(
         modifier = modifier
     ) { paddingValues ->
 
-        val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
+        //for direct api call use this
+        // val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
+
+        //for room
+        val uiStates by viewModel.newsCache.collectAsStateWithLifecycle()
 
         when(uiStates){
             is LatestNewsState.Error -> {
@@ -81,7 +85,7 @@ fun HomeScreen(
             }
             is LatestNewsState.Success -> {
 
-                val data = (uiStates as LatestNewsState.Success).data.results
+                val data = (uiStates as LatestNewsState.Success).data
                 data.let {
 
                     LazyColumn(
