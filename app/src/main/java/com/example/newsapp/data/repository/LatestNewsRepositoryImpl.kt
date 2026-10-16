@@ -23,8 +23,7 @@ class LatestNewsRepositoryImpl @Inject constructor(
 
     override suspend fun refreshLatestNews() {
         val articles = api.getLatestNews()
-
-        dao.insertArticles(articles.results.map { it.toEntity() })
+        dao.replaceArticles(articles.results.map { it.toEntity() })
     }
 
     override fun getLatestNewsCache(): Flow<LatestNewsState> {
@@ -34,6 +33,18 @@ class LatestNewsRepositoryImpl @Inject constructor(
             )
         }
 
+    }
+
+    override suspend fun searchNews(query: String): LatestNewsState {
+        try {
+            return api.searchNews(query).results.let {  response ->
+                LatestNewsState.Success(
+                    response.map { it.toDomain() }
+                )
+            }
+        }catch (e: Exception){
+            throw e
+        }
     }
 
 }

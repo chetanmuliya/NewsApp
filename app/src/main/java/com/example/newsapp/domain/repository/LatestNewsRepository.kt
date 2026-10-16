@@ -11,5 +11,8 @@ interface LatestNewsRepository {
     suspend fun getLatestNews(): LatestNewsResponse
 
     suspend fun refreshLatestNews()
+
     fun getLatestNewsCache(): Flow<LatestNewsState>
+
+    suspend fun searchNews(query: String) : LatestNewsState
 }

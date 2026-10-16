@@ -1,12 +1,14 @@
 package com.example.newsapp.presentation.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,9 +21,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,7 +58,14 @@ fun HomeScreen(
         //for room
         val uiStates by viewModel.newsCache.collectAsStateWithLifecycle()
 
-        when(uiStates){
+        //search
+        val uiSearchStates by viewModel.searchState.collectAsStateWithLifecycle()
+        var query by remember { mutableStateOf("") }
+
+
+        val displaystate = if (query.isBlank()) uiStates else uiSearchStates
+
+        when(displaystate){
             is LatestNewsState.Error -> {
 
                 val message = (uiStates as LatestNewsState.Error).error
@@ -86,13 +99,29 @@ fun HomeScreen(
             is LatestNewsState.Success -> {
 
                 val data = (uiStates as LatestNewsState.Success).data
-                data.let {
+
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+
+                    TextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = query,
+                        onValueChange = {
+                            query = it
+                            viewModel.searchNews(it)
+                                        },
+                        label = {
+                            Text("Search News")
+                        }
+                    )
+
+                    Spacer(Modifier.height(5.dp))
 
                     LazyColumn(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-
+                            .weight(1f)
                         ) {
                         items(
                             data,
@@ -105,6 +134,7 @@ fun HomeScreen(
                     }
 
                 }
+
             }
         }
 
