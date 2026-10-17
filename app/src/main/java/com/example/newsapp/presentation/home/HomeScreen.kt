@@ -18,19 +18,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +70,12 @@ fun HomeScreen(
 
         val displaystate = if (query.isBlank()) uiStates else uiSearchStates
 
+        val data = when (displaystate) {
+            is LatestNewsState.Success -> displaystate.data
+            is LatestNewsState.Loading -> emptyList()
+            is LatestNewsState.Error -> emptyList()
+        }
+
         when(displaystate){
             is LatestNewsState.Error -> {
 
@@ -98,23 +109,18 @@ fun HomeScreen(
             }
             is LatestNewsState.Success -> {
 
-                val data = if (query.isBlank()) (uiStates as LatestNewsState.Success).data else
-                    (uiSearchStates as LatestNewsState.Success).data
-
                 Column(
                     modifier = Modifier.fillMaxSize()
                         .padding(paddingValues)
                 ) {
 
-                    TextField(
-                        modifier = Modifier.fillMaxWidth(),
+                    NewsSearchTextField(
                         value = query,
-                        onValueChange = {
-                            query = it
-                            viewModel.searchNews(query) },
-                        label = {
-                            Text("Search News")
-                        }
+                        onValueChange = { newQuery ->
+                            query = newQuery
+                            viewModel.searchNews(newQuery)
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
 
                     Spacer(Modifier.height(5.dp))
@@ -141,48 +147,142 @@ fun HomeScreen(
     }
 }
 
+
 @Composable
-fun NewsCard(data: Result) {
+fun NewsCard(
+    data: Result,
+    onBookmarkClick: () -> Unit = {}
+) {
+    var isBookmarked by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     Card(
-        modifier = Modifier.fillMaxWidth()
-            .padding(8.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(10.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             AsyncImage(
                 model = data.image_url,
-                placeholder = painterResource(R.drawable.ic_launcher_foreground),
-                contentDescription = "image",
-                modifier = Modifier.size(100.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                contentDescription = "News thumbnail",
+                modifier = Modifier
+                    .size(width = 112.dp, height = 120.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop
             )
-
-            Spacer(modifier = Modifier.width(5.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+                Row(
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = data.title.orEmpty(),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    IconButton(
+                        onClick = {
+                            isBookmarked = !isBookmarked
+                            onBookmarkClick()
+                        },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            painter = if (isBookmarked) {
+                                painterResource(R.drawable.ic_bookmark_filled)
+                            } else {
+                                painterResource(R.drawable.ic_bookmark)
+                            },
+                            contentDescription = if (isBookmarked) {
+                                "Remove bookmark"
+                            } else {
+                                "Bookmark article"
+                            },
+                            tint = if (isBookmarked) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
                 Text(
-                    text = data.title?:"",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.width(2.dp))
-                Text(
-                    text = data.description?:"",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Normal,
+                    text = data.description.orEmpty(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
             }
         }
     }
+}
+
+
+@Composable
+fun NewsSearchTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        placeholder = {
+            Text("Search news...")
+        },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_search),
+                contentDescription = "Search"
+            )
+        },
+        trailingIcon = {
+            if (value.isNotEmpty()) {
+                IconButton(
+                    onClick = { onValueChange("") }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_close),
+                        contentDescription = "Clear search"
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(50),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFFF1F3F8),
+            unfocusedContainerColor = Color(0xFFF1F3F8),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            cursorColor = Color(0xFF2563EB)
+        )
+    )
 }

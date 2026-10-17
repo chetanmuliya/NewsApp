@@ -38,7 +38,7 @@ class HomeViewModel @Inject constructor(
             initialValue = LatestNewsState.Loading
         )
 
-    private val _searchState = MutableStateFlow<LatestNewsState>(LatestNewsState.Loading)
+    private val _searchState = MutableStateFlow<LatestNewsState>(LatestNewsState.Success(emptyList()))
     val searchState = _searchState.asStateFlow()
 
     init {
