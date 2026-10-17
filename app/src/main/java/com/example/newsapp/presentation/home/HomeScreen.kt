@@ -1,6 +1,5 @@
 package com.example.newsapp.presentation.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -181,7 +178,8 @@ fun NewsCard(
                 modifier = Modifier
                     .size(width = 112.dp, height = 120.dp)
                     .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_image_placeholder)
             )
 
             Column(
