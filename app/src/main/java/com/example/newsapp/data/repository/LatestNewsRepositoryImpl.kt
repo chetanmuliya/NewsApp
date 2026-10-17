@@ -1,5 +1,6 @@
 package com.example.newsapp.data.repository
 
+import android.util.Log
 import com.example.newsapp.data.local.dao.ArticlesDao
 import com.example.newsapp.data.mapper.toDomain
 import com.example.newsapp.data.mapper.toEntity
@@ -36,14 +37,10 @@ class LatestNewsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun searchNews(query: String): LatestNewsState {
-        try {
-            return api.searchNews(query).results.let {  response ->
-                LatestNewsState.Success(
-                    response.map { it.toDomain() }
-                )
-            }
-        }catch (e: Exception){
-            throw e
+        return api.searchNews(query).results.let {  response ->
+            LatestNewsState.Success(
+                response.map { it.toDomain() }
+            )
         }
     }
 

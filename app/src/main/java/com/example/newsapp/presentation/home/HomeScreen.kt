@@ -98,7 +98,8 @@ fun HomeScreen(
             }
             is LatestNewsState.Success -> {
 
-                val data = (uiStates as LatestNewsState.Success).data
+                val data = if (query.isBlank()) (uiStates as LatestNewsState.Success).data else
+                    (uiSearchStates as LatestNewsState.Success).data
 
                 Column(
                     modifier = Modifier.fillMaxSize()
@@ -110,8 +111,7 @@ fun HomeScreen(
                         value = query,
                         onValueChange = {
                             query = it
-                            viewModel.searchNews(it)
-                                        },
+                            viewModel.searchNews(query) },
                         label = {
                             Text("Search News")
                         }
