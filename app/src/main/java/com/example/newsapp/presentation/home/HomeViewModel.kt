@@ -9,11 +9,22 @@ import com.example.newsapp.domain.usecases.GetNewsCacheUseCases
 import com.example.newsapp.domain.usecases.GetSearchNewsUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,10 +52,35 @@ class HomeViewModel @Inject constructor(
     private val _searchState = MutableStateFlow<LatestNewsState>(LatestNewsState.Success(emptyList()))
     val searchState = _searchState.asStateFlow()
 
+    private val searchQuery = MutableStateFlow("")
+
     init {
         //without room direct api call
         //getLatestNews()
         getLatestNewsCache()
+
+        searchQuery
+            .debounce(500)
+            .distinctUntilChanged()
+            .filter { it.isNotBlank() }
+            .flatMapLatest { query ->
+                flow {
+                    emit(searchNewsUseCases(query))
+                }.catch { e ->
+                    if (e is CancellationException) throw e
+
+                    emit(
+                        LatestNewsState.Error(
+                            e.message ?: "search failed"
+                        )
+                    )
+                }
+            }
+            .flowOn(Dispatchers.IO)
+            .onEach { state ->
+                _searchState.value = state
+            }.launchIn(viewModelScope)
+
     }
 
     private fun getLatestNewsCache() {
@@ -71,15 +107,9 @@ class HomeViewModel @Inject constructor(
 
     fun searchNews(q: String) {
 
-        if (q.isNotBlank()) {
-            viewModelScope.launch {
-                withContext(Dispatchers.IO) {
-                    delay(500)
-                    val state = searchNewsUseCases(q)
-                    _searchState.value = state
-                }
-            }
-        }
+        if (q.isBlank()) return
+
+        searchQuery.value = q
 
     }
 }

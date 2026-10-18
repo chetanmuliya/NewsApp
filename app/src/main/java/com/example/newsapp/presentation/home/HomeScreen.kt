@@ -76,7 +76,7 @@ fun HomeScreen(
         when(displaystate){
             is LatestNewsState.Error -> {
 
-                val message = (uiStates as LatestNewsState.Error).error
+                val message = (displaystate as LatestNewsState.Error).error
                 Box(
                     modifier = Modifier.fillMaxSize().padding(12.dp),
                     contentAlignment = Alignment.Center
