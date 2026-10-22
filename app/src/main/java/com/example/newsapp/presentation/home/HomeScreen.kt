@@ -64,8 +64,11 @@ fun HomeScreen(
         val uiSearchStates by viewModel.searchState.collectAsStateWithLifecycle()
         var query by remember { mutableStateOf("") }
 
+        val categoryStates by viewModel.categoryState.collectAsStateWithLifecycle()
+        var onCategoryClicked by remember { mutableStateOf(false) }
 
-        val displaystate = if (query.isBlank()) uiStates else uiSearchStates
+        val displaystate = if (onCategoryClicked) categoryStates else if (query.isBlank()) uiStates
+                                  else uiSearchStates
 
         val data = when (displaystate) {
             is LatestNewsState.Success -> displaystate.data
@@ -114,10 +117,24 @@ fun HomeScreen(
                     NewsSearchTextField(
                         value = query,
                         onValueChange = { newQuery ->
+                            onCategoryClicked = false
                             query = newQuery
                             viewModel.searchNews(newQuery)
                         },
                         modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Spacer(Modifier.height(5.dp))
+
+                    NewsTabs(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        viewModel.getTabList,
+                        onTabClicked = { index ->
+                            onCategoryClicked = true
+                            viewModel.onCategoryClicked(
+                                viewModel.getTabList[index]
+                            )
+                        }
                     )
 
                     Spacer(Modifier.height(5.dp))

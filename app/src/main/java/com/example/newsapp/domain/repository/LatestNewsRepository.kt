@@ -15,4 +15,6 @@ interface LatestNewsRepository {
     fun getLatestNewsCache(): Flow<LatestNewsState>
 
     suspend fun searchNews(query: String) : LatestNewsState
+
+    suspend fun getByNewsCategory(category: String) : LatestNewsState
 }

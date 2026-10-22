@@ -14,4 +14,9 @@ interface NewsApi {
         @Query("q") query : String
     ):LatestNewsResponseDto
 
+    @GET("latest")
+    suspend fun newsByCategory(
+        @Query("category") category : String
+    ):LatestNewsResponseDto
+
 }

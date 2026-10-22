@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.newsapp.domain.helper.LatestNewsState
 import com.example.newsapp.domain.usecases.ObserveLatestNewsCacheUseCases
 import com.example.newsapp.domain.usecases.GetLatestNewsUseCases
+import com.example.newsapp.domain.usecases.GetNewsByCategoryUseCases
 import com.example.newsapp.domain.usecases.GetNewsCacheUseCases
 import com.example.newsapp.domain.usecases.GetSearchNewsUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +38,7 @@ class HomeViewModel @Inject constructor(
     private val getNewsCacheUseCases: GetNewsCacheUseCases,
     private val observeLatestNewsCacheUseCases: ObserveLatestNewsCacheUseCases,
     private val searchNewsUseCases: GetSearchNewsUseCases,
+    private val getNewsByCategoryUseCases: GetNewsByCategoryUseCases,
 ): ViewModel() {
 
     private val _uiState = MutableStateFlow<LatestNewsState>(LatestNewsState.Loading)
@@ -49,10 +51,16 @@ class HomeViewModel @Inject constructor(
             initialValue = LatestNewsState.Loading
         )
 
-    private val _searchState = MutableStateFlow<LatestNewsState>(LatestNewsState.Success(emptyList()))
+    private val _searchState =
+        MutableStateFlow<LatestNewsState>(LatestNewsState.Success(emptyList()))
     val searchState = _searchState.asStateFlow()
 
     private val searchQuery = MutableStateFlow("")
+
+    val getTabList = listOf("top","sports","health","food")
+    private val _categoryState =
+        MutableStateFlow<LatestNewsState>(LatestNewsState.Success(emptyList()))
+    val categoryState = _categoryState.asStateFlow()
 
     init {
         //without room direct api call
@@ -110,6 +118,16 @@ class HomeViewModel @Inject constructor(
         if (q.isBlank()) return
 
         searchQuery.value = q
+
+    }
+
+    fun onCategoryClicked(category: String) {
+
+        viewModelScope.launch {
+            val categoryNews = getNewsByCategoryUseCases(category)
+            _categoryState.value = categoryNews
+
+        }
 
     }
 }

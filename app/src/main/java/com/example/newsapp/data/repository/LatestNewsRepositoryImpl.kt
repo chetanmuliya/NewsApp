@@ -44,4 +44,12 @@ class LatestNewsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getByNewsCategory(category: String): LatestNewsState {
+        return api.newsByCategory(category).results.let { response ->
+            LatestNewsState.Success(
+                response.map { it.toDomain() }
+            )
+        }
+    }
+
 }
